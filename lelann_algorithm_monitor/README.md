@@ -42,10 +42,10 @@ The monitor node:
    ```
 4. Start a node in each terminal:
    ```bash
-   python node.py 0 5556 5557
-   python node.py 1 5557 5558
-   python node.py 2 5558 5559
-   python node.py 3 5559 5556
+   python3 node.py 0 5556 5557
+   python3 node.py 1 5557 5558
+   python3 node.py 2 5558 5559
+   python3 node.py 3 5559 5556
    ```
 
 

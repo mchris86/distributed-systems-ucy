@@ -33,10 +33,10 @@ Use **PAIR sockets** to implement the transfer of the token from one node to the
    ```
 3. Start a node in each terminal:
    ```bash
-   python node.py 0 5555 5556
-   python node.py 1 5556 5557
-   python node.py 2 5557 5558
-   python node.py 3 5558 5555
+   python3 node.py 0 5555 5556
+   python3 node.py 1 5556 5557
+   python3 node.py 2 5557 5558
+   python3 node.py 3 5558 5555
    ```
 
 
