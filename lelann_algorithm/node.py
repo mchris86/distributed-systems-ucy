@@ -11,10 +11,10 @@ def main():
     send_port = sys.argv[3]
 
     sender = context.socket(zmq.PAIR)
-    sender.bind("tcp://*:%s" % send_port)
+    sender.bind(f"tcp://*:{send_port}")
 
     receiver = context.socket(zmq.PAIR)
-    receiver.connect("tcp://localhost:%s" % receive_port)
+    receiver.connect(f"tcp://localhost:{receive_port}")
 
     if node_id == "0":
         print(f"Node {node_id} creating token")

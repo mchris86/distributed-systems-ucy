@@ -10,10 +10,10 @@ def main():
     send_port = sys.argv[3]
 
     sender = context.socket(zmq.PAIR)
-    sender.bind("tcp://localhost:%s" % send_port)
+    sender.bind(f"tcp://localhost:{send_port}")
 
     receiver = context.socket(zmq.PAIR)
-    receiver.connect("tcp://localhost:%s" % receive_port)
+    receiver.connect(f"tcp://localhost:{receive_port}")
 
     # Socket to talk to monitor
     req_socket = context.socket(zmq.REQ)
