@@ -25,7 +25,6 @@ def main():
 
     poller = zmq.Poller()
     poller.register(receiver, zmq.POLLIN)
-    # poller.register(req_socket, zmq.POLLIN)
     poller.register(sub_socket, zmq.POLLIN)
 
 
