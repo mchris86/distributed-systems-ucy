@@ -32,7 +32,6 @@ def main():
     if node_id == "0":
         print(f"Node {node_id} creating token")
         sender_forward.send_string(f"Token 0 0")
-        # sender_reverse.send_string(f"Reverse 0 0")
         pub_socket = context.socket(zmq.PUB)
         pub_socket.bind(f"tcp://*:{pub_port}")
         ports = 9000
@@ -49,7 +48,6 @@ def main():
             socks = dict(poller.poll())
 
             if receiver_forward in socks:
-                print("In receiving_forward")
                 message = receiver_forward.recv_string()
                 words = message.split()
                 print(message)
@@ -77,11 +75,11 @@ def main():
                     sender_reverse.close()
 
                     receiver_forward = context.socket(zmq.PAIR)
-                    receiver_forward.bind(f"tcp://*:{new_listen}")  # BIND στο new_listen
+                    receiver_forward.bind(f"tcp://*:{new_listen}")  # BIND on new_listen
                     poller.register(receiver_forward, zmq.POLLIN)
 
                     sender_reverse = context.socket(zmq.PAIR)
-                    sender_reverse.connect(f"tcp://localhost:{new_connect}")  # CONNECT στο new_connect
+                    sender_reverse.connect(f"tcp://localhost:{new_connect}")  # CONNECT on new_connect
 
             if receiver_reverse in socks:
                 message = receiver_reverse.recv_string()
@@ -96,21 +94,15 @@ def main():
                 sender_forward.close()
 
                 receiver_reverse = context.socket(zmq.PAIR)
-                receiver_reverse.bind(f"tcp://*:{new_listen}")  # BIND στο new_listen
+                receiver_reverse.bind(f"tcp://*:{new_listen}")  # BIND on new_listen
                 poller.register(receiver_reverse, zmq.POLLIN)
 
                 sender_forward = context.socket(zmq.PAIR)
-                sender_forward.connect(f"tcp://localhost:{new_connect}")  # CONNECT στο new_connect
+                sender_forward.connect(f"tcp://localhost:{new_connect}")  # CONNECT on new_connect
 
-                # message = receiver_reverse.recv_string()
-                # print(message)
-                # time.sleep(1)
-                # words = message.split()
-                # # Send message to next node
-                # sender_reverse.send_string(f"Reverse {node_id} {int(words[2]) + 1}")
 
             if sub_socket in socks:  # Receive message from monitor
-                print("In sub_socket-----------------------------------------------------")
+                print("Getting removed...")
                 message = sub_socket.recv_string()
                 words = message.split()
 
