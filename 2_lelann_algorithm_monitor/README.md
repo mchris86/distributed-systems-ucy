@@ -26,7 +26,7 @@ The monitor node:
 ## How to run:
 1. Start the monitor node:
     ```bash
-   cd lelann_algorithm_monitor
+   cd 2_lelann_algorithm_monitor
    python3 -m venv venv
    source venv/bin/activate
    pip3 install pyzmq
@@ -35,7 +35,7 @@ The monitor node:
 2. Open 4 separate terminals (for each node)
 3. In each terminal: 
    ```bash
-   cd lelann_algorithm_monitor
+   cd 2_lelann_algorithm_monitor
    python3 -m venv venv
    source venv/bin/activate
    pip3 install pyzmq 

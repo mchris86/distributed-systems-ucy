@@ -26,7 +26,7 @@ Use **PAIR sockets** to implement the transfer of the token from one node to the
 1. Open 4 terminal windows (for each node)
 2. In each terminal: 
    ```bash
-   cd lelann_algorithm
+   cd 1_lelann_algorithm
    python3 -m venv venv
    source venv/bin/activate
    pip3 install pyzmq 
