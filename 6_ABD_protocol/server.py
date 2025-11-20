@@ -58,7 +58,7 @@ def main():
             time.sleep(num)
 
             router_socket.send_multipart([reader_id, b"", b"inform_ack", msg_id])
-            print(f"Server {server_port} sent INFROM ACK message")
+            print(f"Server {server_port} sent INFORM ACK message")
 
 
 if __name__ == "__main__":

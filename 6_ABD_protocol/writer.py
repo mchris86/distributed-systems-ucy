@@ -1,5 +1,6 @@
 import zmq
 import time
+import random
 
 context = zmq.Context()
 
@@ -59,14 +60,15 @@ def write(new_val):
         if responses >= 2:
             break
 
+    print()
 
 def main():
     print("Writer starting..")
     for i in range(10):
-        print(f"Writer is writing {i}")
-        write(i)
-        time.sleep(5)
-
+        num = random.randint(1, 100)
+        print(f"Writer is writing {num}")
+        write(num)
+        time.sleep(4)
 
 if __name__ == "__main__":
     main()
