@@ -12,12 +12,10 @@ class ChandyProcess:
         self.num_processes = num_processes
         self.process_port = process_port
 
-
         # Algorithm variables
         self.lc = 1 if process_id == 0 else 0
         self.queue = []
-        self.has_token = (process_id == 0)
-        self.token = [0] * num_processes if self.has_token else None
+        self.token = [0] * num_processes if process_id == 0 else None
         self.in_cs = False
         self.want_cs = False
 
@@ -43,14 +41,14 @@ class ChandyProcess:
         self.sigint_received = False
         signal.signal(signal.SIGINT, self.handle_sigint)
 
-        print(f"Process {process_id} initialized. Has token: {self.has_token}")
+        print(f"Process {process_id} initialized. Has token: {bool(self.token)}")
+        print(self.token)
 
         # Process 0 enters CS immediately
-        if self.process_id == 0 and self.has_token:
+        if self.process_id == 0:
             self.critical_section()
 
     def handle_sigint(self, signum, frame):
-
         if not self.in_cs:
             print(f"\n[Process {self.process_id}] SIGINT - requesting CS")
             self.sigint_received = True
@@ -59,9 +57,7 @@ class ChandyProcess:
         """Enter critical section, do work, exit"""
         self.in_cs = True
 
-        # Update token
-        if self.has_token:
-            self.token[self.process_id] = self.lc
+        self.token[self.process_id] = self.lc
 
         print(f"\n{'=' * 60}")
         print(f"[Process {self.process_id}] *** ENTERING CS ***")
@@ -79,32 +75,30 @@ class ChandyProcess:
         self.want_cs = False
 
         # Process queue and send token
-        if self.has_token:
-            self.token[self.process_id] = self.lc
+        self.token[self.process_id] = self.lc
 
-            while self.queue:
-                req_process, req_lc = self.queue.pop(0)
+        while self.queue:
+            req_process, req_lc = self.queue.pop(0)
 
-                if req_lc > self.token[req_process]:
-                    # Send token
-                    print(f"[Process {self.process_id}] Sending token to process {req_process}")
-                    print(f"[Process {self.process_id}] Token state: {self.token}")
+            if req_lc > self.token[req_process]:
+                # Send token
+                print(f"[Process {self.process_id}] Sending token to process {req_process}")
+                print(f"[Process {self.process_id}] Token state: {self.token}")
 
-                    token_str = ','.join(str(x) for x in self.token)
-                    self.dealer_sockets[req_process].send_multipart([b"", b"TOKEN", token_str.encode()])
-                    self.has_token = False
-                    self.token = None
-                    return
-                else:
-                    print(f"[Process {self.process_id}] Ignoring outdated request from {req_process}")
+                token_str = ','.join(str(x) for x in self.token)
+                self.dealer_sockets[req_process].send_multipart([b"", b"TOKEN", token_str.encode()])
+                self.token = None
+                return
+            else:
+                print(f"[Process {self.process_id}] Ignoring outdated request from {req_process}")
 
-            print(f"[Process {self.process_id}] No pending requests. Keeping token: {self.token}.")
+        print(f"[Process {self.process_id}] No pending requests. Keeping token: {self.token}.")
 
-            # Check if want to enter again
-            if self.sigint_received:
-                self.sigint_received = False
-                self.lc += 1
-                self.critical_section()
+        # Check if want to enter again
+        if self.sigint_received:
+            self.sigint_received = False
+            self.lc += 1
+            self.critical_section()
 
     def run(self):
         """Main event loop"""
@@ -118,7 +112,7 @@ class ChandyProcess:
                     self.sigint_received = False
                     self.want_cs = True
 
-                    if not self.has_token:
+                    if self.token is None:
                         # Request token
                         self.lc += 1
 
@@ -132,7 +126,6 @@ class ChandyProcess:
                         for sock in self.dealer_sockets.values():
                             sock.send_multipart(msg)
 
-
                         print(f"[Process {self.process_id}] Waiting for token...")
                     else:
                         # Already have token
@@ -140,7 +133,7 @@ class ChandyProcess:
                         self.critical_section()
 
                 # Check for messages
-                socks = dict(self.poller)
+                socks = dict(self.poller.poll(200))
 
                 if self.router_socket in socks:
                     parts = self.router_socket.recv_multipart()
@@ -152,14 +145,13 @@ class ChandyProcess:
 
                         print(f"[Process {self.process_id}] Received REQUEST from process {sender_id} with lc={sender_lc}")
 
-                        if self.has_token and not self.in_cs and not self.want_cs and not self.queue:
+                        if self.token and not self.in_cs and not self.want_cs and not self.queue:
                             # Send token immediately
                             print(f"[Process {self.process_id}] Sending token to process {sender_id}")
 
                             token_str = ','.join(str(x) for x in self.token)
                             self.dealer_sockets[sender_id].send_multipart([b"", b'TOKEN', token_str.encode()])
 
-                            self.has_token = False
                             self.token = None
                         else:
                             # Add to queue
@@ -172,8 +164,6 @@ class ChandyProcess:
                         token = [int(x) for x in token_str.split(',')]
 
                         print(f"[Process {self.process_id}] Received TOKEN: {token}")
-
-                        self.has_token = True
                         self.token = token
 
                         if self.want_cs:
