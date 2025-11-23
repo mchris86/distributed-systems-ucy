@@ -17,7 +17,6 @@ class ChandyProcess:
         self.queue = []
         self.token = [0] * num_processes if process_id == 0 else None
         self.in_cs = False
-        self.want_cs = False
 
         # ZeroMQ setup
         self.context = zmq.Context()
@@ -64,7 +63,8 @@ class ChandyProcess:
         print(f"{'=' * 60}\n")
 
         # Work in CS
-        time.sleep(10)
+        num = random.randint(1, 6)
+        time.sleep(num)
 
         print(f"\n{'=' * 60}")
         print(f"[Process {self.process_id}] *** LEAVING CS *** (after {10:.2f}s)")
@@ -72,7 +72,6 @@ class ChandyProcess:
 
         # Exit CS
         self.in_cs = False
-        self.want_cs = False
 
         # Process queue and send token
         self.token[self.process_id] = self.lc
@@ -94,12 +93,6 @@ class ChandyProcess:
 
         print(f"[Process {self.process_id}] No pending requests. Keeping token: {self.token}.")
 
-        # Check if want to enter again
-        if self.sigint_received:
-            self.sigint_received = False
-            self.lc += 1
-            self.critical_section()
-
     def run(self):
         """Main event loop"""
         print(f"\n[Process {self.process_id}] Starting main loop...")
@@ -108,9 +101,8 @@ class ChandyProcess:
         try:
             while True:
                 # Handle SIGINT
-                if self.sigint_received and not self.in_cs and not self.want_cs:
+                if self.sigint_received:
                     self.sigint_received = False
-                    self.want_cs = True
 
                     if self.token is None:
                         # Request token
@@ -133,7 +125,7 @@ class ChandyProcess:
                         self.critical_section()
 
                 # Check for messages
-                socks = dict(self.poller.poll(200))
+                socks = dict(self.poller.poll(200))  # Timeout at 200ms so that we check for sigint flag
 
                 if self.router_socket in socks:
                     parts = self.router_socket.recv_multipart()
@@ -145,7 +137,7 @@ class ChandyProcess:
 
                         print(f"[Process {self.process_id}] Received REQUEST from process {sender_id} with lc={sender_lc}")
 
-                        if self.token and not self.in_cs and not self.want_cs and not self.queue:
+                        if self.token and not self.in_cs and not self.queue:
                             # Send token immediately
                             print(f"[Process {self.process_id}] Sending token to process {sender_id}")
 
@@ -165,9 +157,7 @@ class ChandyProcess:
 
                         print(f"[Process {self.process_id}] Received TOKEN: {token}")
                         self.token = token
-
-                        if self.want_cs:
-                            self.critical_section()
+                        self.critical_section()
 
                 time.sleep(0.01)
 
