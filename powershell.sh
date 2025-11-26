@@ -1,4 +1,5 @@
 # Create venv
+# Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 
